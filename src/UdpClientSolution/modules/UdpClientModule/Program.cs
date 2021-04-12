@@ -74,8 +74,9 @@ namespace UdpClientModule
             var twin = await ioTHubModuleClient.GetTwinAsync();
             await onDesiredPropertiesUpdate(twin.Properties.Desired, ioTHubModuleClient);
 
-            Console.WriteLine("Supported desired properties: minimalLogLevel."); 
+            Console.WriteLine("Supported desired properties: minimalLogLevel, clientListeningPort."); 
 
+            Console.WriteLine("Attached routing output: output1."); 
 
             await ioTHubModuleClient.OpenAsync();
 
@@ -84,7 +85,6 @@ namespace UdpClientModule
             var thread = new Thread(() => ThreadBody());
             thread.Start();
         }
-
 
         private static async Task onDesiredPropertiesUpdate(TwinCollection desiredProperties, object userContext)
         {
@@ -236,8 +236,33 @@ namespace UdpClientModule
 
             // simulate heavy logic running side-by-side async
             //Thread.Sleep(10000);
+            //Console.WriteLine($"Closed {receiveString}");
 
-            Console.WriteLine($"Closed {receiveString}");
+            var udpMessage = new UdpMessage
+            {
+                timeStamp = DateTime.UtcNow,
+                address =  e.Address.ToString(),
+                port = e.Port,
+                message = receiveString,
+            };
+
+            var jsonMessage = JsonConvert.SerializeObject(udpMessage);
+
+            var messageBytes = Encoding.UTF8.GetBytes(jsonMessage);
+
+            using (var message = new Message(messageBytes))
+            {
+                message.ContentEncoding = "utf-8";
+                message.ContentType = "application/json";
+
+                message.Properties.Add("ContentEncodingX", "Udp+utf-8+application/json");
+
+                ioTHubModuleClient.SendEventAsync("output1", message).Wait();
+
+                var size = CalculateSize(messageBytes);
+
+                Console.WriteLine($"Message with size {size} bytes sent.");
+            }
         }
 
         private static async Task SendLogLevelMessage(LogLevelMessage moduleStateMessage)
@@ -284,11 +309,4 @@ namespace UdpClientModule
             }
         }
     }
-
-        public struct UdpState
-        {
-            public UdpClient u;
-            public IPEndPoint e;
-        }
-
 }

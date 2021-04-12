@@ -57,25 +57,15 @@
           }
         },
         "modules": {
-          "UdpClientModule": {
-            "version": "1.0",
-            "type": "docker",
-            "status": "running",
-            "restartPolicy": "always",
+          "udp": {
             "settings": {
-              "image": "${MODULES.UdpClientModule}",
-              "createOptions": {}
-            }
-          },
-          "SimulatedTemperatureSensor": {
-            "version": "1.0",
+                "image": "svelde/iot-edge-udp-client:0.0.1-amd64",
+                "createOptions": "{\"ExposedPorts\":{\"11001/udp\":{}},\"HostConfig\":{\"PortBindings\":{\"11001/udp\":[{\"HostPort\":\"11001\"}]}}}"
+            },
             "type": "docker",
+            "version": "1.0",
             "status": "running",
-            "restartPolicy": "always",
-            "settings": {
-              "image": "mcr.microsoft.com/azureiotedge-simulated-temperature-sensor:1.0",
-              "createOptions": {}
-            }
+            "restartPolicy": "always"
           }
         }
       }
@@ -84,8 +74,7 @@
       "properties.desired": {
         "schemaVersion": "1.0",
         "routes": {
-          "UdpClientModuleToIoTHub": "FROM /messages/modules/UdpClientModule/outputs/* INTO $upstream",
-          "sensorToUdpClientModule": "FROM /messages/modules/SimulatedTemperatureSensor/outputs/temperatureOutput INTO BrokeredEndpoint(\"/modules/UdpClientModule/inputs/input1\")"
+          "UdpClientModuleToIoTHub": "FROM /messages/modules/UdpClientModule/outputs/* INTO $upstream"
         },
         "storeAndForwardConfiguration": {
           "timeToLiveSecs": 7200
