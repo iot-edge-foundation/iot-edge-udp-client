@@ -64,6 +64,19 @@ namespace UdpClientModule
             _deviceId = System.Environment.GetEnvironmentVariable("IOTEDGE_DEVICEID");
             _moduleId = Environment.GetEnvironmentVariable("IOTEDGE_MODULEID");
 
+
+System.Console.WriteLine("");
+System.Console.WriteLine("  _       _                  _                             _                 _ _            _   ");
+System.Console.WriteLine(" (_)     | |                | |                           | |               | (_)          | |  ");
+System.Console.WriteLine("  _  ___ | |_ ______ ___  __| | __ _  ___ ______ _   _  __| |_ __ ______ ___| |_  ___ _ __ | |_ ");
+System.Console.WriteLine(" | |/ _ \\| __|______/ _ \\/ _` |/ _` |/ _ \\______| | | |/ _` | '_ \\______/ __| | |/ _ \\ '_ \\| __|");
+System.Console.WriteLine(" | | (_) | |_      |  __/ (_| | (_| |  __/      | |_| | (_| | |_) |    | (__| | |  __/ | | | |_ ");
+System.Console.WriteLine(" |_|\\___/ \\__|      \\___|\\__,_|\\__, |\\___|       \\__,_|\\__,_| .__/      \\___|_|_|\\___|_| |_|\\__|");
+System.Console.WriteLine("                                __/ |                       | |                                 ");
+System.Console.WriteLine("                               |___/                        |_|                                 ");
+System.Console.WriteLine("Copyrights 2021 @svelde");
+System.Console.WriteLine("");
+
             MqttTransportSettings mqttSetting = new MqttTransportSettings(TransportType.Mqtt_Tcp_Only);
             ITransportSettings[] settings = { mqttSetting };
 
