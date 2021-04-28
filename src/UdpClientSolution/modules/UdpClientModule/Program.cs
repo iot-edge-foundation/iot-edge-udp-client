@@ -272,9 +272,7 @@ System.Console.WriteLine("");
 
                 ioTHubModuleClient.SendEventAsync("output1", message).Wait();
 
-                var size = CalculateSize(messageBytes);
-
-                Console.WriteLine($"Message with size {size} bytes sent.");
+                Console.WriteLine($"Message sent.");
             }
         }
 
@@ -297,28 +295,7 @@ System.Console.WriteLine("");
 
                 await ioTHubModuleClient.SendEventAsync("outputError", message);
 
-                var size = CalculateSize(messageBytes);
-
-                Console.WriteLine($"Error message {moduleStateMessage.code} with size {size} bytes sent.");
-            }
-        }
-
-        private static int CalculateSize(byte[] messageBytes)
-        {
-            using (var message = new Message(messageBytes))
-            {
-                message.ContentEncoding = "utf-8";
-                message.ContentType = "application/json";
-                message.Properties.Add("content-type", "application/opcua-error-json"); // not flexible
-
-                var result = message.GetBytes().Length;
-
-                foreach (var p in message.Properties)
-                {
-                    result = result + p.Key.Length + p.Value.Length;
-                }
-
-                return result;
+                Console.WriteLine($"Error message {moduleStateMessage.code} sent.");
             }
         }
     }
