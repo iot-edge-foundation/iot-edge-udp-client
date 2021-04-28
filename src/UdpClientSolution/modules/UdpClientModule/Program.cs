@@ -18,21 +18,17 @@ namespace UdpClientModule
     class Program
     {
         private static LogLevelMessage.LogLevel DefaultMinimalLogLevel = LogLevelMessage.LogLevel.Warning;
+        private const int DefaultClientListeningPort = 11001;
 
         private static ModuleClient ioTHubModuleClient;
-
-        private const int DefaultClientListeningPort = 11001;
 
         private static string _moduleId; 
 
         private static string _deviceId;
 
-        private static UdpState _udpState;
-
         private static LogLevelMessage.LogLevel MinimalLogLevel { get; set; } = DefaultMinimalLogLevel;
 
         private static int ClientListeningPort { get; set; } = DefaultClientListeningPort;
-
 
         static void Main(string[] args)
         {
@@ -89,7 +85,7 @@ System.Console.WriteLine("");
 
             Console.WriteLine("Supported desired properties: minimalLogLevel, clientListeningPort."); 
 
-            Console.WriteLine("Attached routing output: output1."); 
+            Console.WriteLine("Attached routing outputs: output1, outputError."); 
 
             await ioTHubModuleClient.OpenAsync();
 
@@ -204,9 +200,9 @@ System.Console.WriteLine("");
             IPEndPoint RemoteIpEndPoint = new IPEndPoint(IPAddress.Any, ClientListeningPort);
             var udpClient = new UdpClient(RemoteIpEndPoint);
 
-            _udpState = new UdpState();
-            _udpState.e = RemoteIpEndPoint;
-            _udpState.u = udpClient;
+            var udpState = new UdpState();
+            udpState.e = RemoteIpEndPoint;
+            udpState.u = udpClient;
 
             Console.WriteLine("listening for first message");
 
@@ -215,7 +211,7 @@ System.Console.WriteLine("");
                 while (true)
                 {
                     // we have to repeat this non blocking call
-                    udpClient.BeginReceive(new AsyncCallback(ReceiveCallback), _udpState);
+                    udpClient.BeginReceive(new AsyncCallback(ReceiveCallback), udpState);
                     //Console.WriteLine("non blocking call");
                     Thread.Sleep(2000);
                 }
@@ -243,19 +239,19 @@ System.Console.WriteLine("");
             IPEndPoint e = ((UdpState)(ar.AsyncState)).e;
 
             byte[] receiveBytes = u.EndReceive(ar, ref e);
-            string receiveString = Encoding.ASCII.GetString(receiveBytes);
+            string receiveString = Encoding.ASCII.GetString(receiveBytes); // Here we expect to receive ASCII STRINGS
 
             Console.WriteLine($"Received message: {receiveString} coming from server '{e.Address}:{e.Port}' ");
 
-            // simulate heavy logic running side-by-side async
-            //Thread.Sleep(10000);
-            //Console.WriteLine($"Closed {receiveString}");
+            //// Activate the following two lines to simulate heavy logic running side-by-side async
+            //   Thread.Sleep(10000);
+            //   Console.WriteLine($"Closed {receiveString}");
 
             var udpMessage = new UdpMessage
             {
                 timeStamp = DateTime.UtcNow,
-                address =  e.Address.ToString(),
-                port = e.Port,
+                address =  e.Address.ToString(), // server sending the message
+                port = e.Port, // server sending the message
                 message = receiveString,
             };
 
@@ -291,7 +287,8 @@ System.Console.WriteLine("");
             {
                 message.ContentEncoding = "utf-8";
                 message.ContentType = "application/json";
-                message.Properties.Add("content-type", "application/opcua-error-json");
+
+                message.Properties.Add("ContentEncodingX", "Error+utf-8+application/json");
 
                 await ioTHubModuleClient.SendEventAsync("outputError", message);
 
