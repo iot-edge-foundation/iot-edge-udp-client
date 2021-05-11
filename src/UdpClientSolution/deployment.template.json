@@ -59,7 +59,7 @@
         "modules": {
           "udp": {
             "settings": {
-                "image": "svelde/iot-edge-udp-client:0.0.1-amd64",
+                "image": "svelde/iot-edge-udp-client:0.0.6-amd64",
                 "createOptions": "{\"ExposedPorts\":{\"11001/udp\":{}},\"HostConfig\":{\"PortBindings\":{\"11001/udp\":[{\"HostPort\":\"11001\"}]}}}"
             },
             "type": "docker",

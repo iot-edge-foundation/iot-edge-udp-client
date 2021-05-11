@@ -17,17 +17,12 @@ namespace UdpClientModule
 
     class Program
     {
+        private static ModuleClient ioTHubModuleClient;
+        private static string _moduleId; 
+        private static string _deviceId;
         private static LogLevelMessage.LogLevel DefaultMinimalLogLevel = LogLevelMessage.LogLevel.Warning;
         private const int DefaultClientListeningPort = 11001;
-
-        private static ModuleClient ioTHubModuleClient;
-
-        private static string _moduleId; 
-
-        private static string _deviceId;
-
         private static LogLevelMessage.LogLevel MinimalLogLevel { get; set; } = DefaultMinimalLogLevel;
-
         private static int ClientListeningPort { get; set; } = DefaultClientListeningPort;
 
         static void Main(string[] args)
@@ -82,7 +77,7 @@ namespace UdpClientModule
             var twin = await ioTHubModuleClient.GetTwinAsync();
             await onDesiredPropertiesUpdate(twin.Properties.Desired, ioTHubModuleClient);
 
-            Console.WriteLine("Supported desired properties: minimalLogLevel, clientListeningPort."); 
+            Console.WriteLine($"Supported desired properties: minimalLogLevel ({MinimalLogLevel}), clientListeningPort ({ClientListeningPort})."); 
 
             Console.WriteLine("Attached routing outputs: output1, outputError."); 
 
@@ -160,10 +155,9 @@ namespace UdpClientModule
 
                 if (reportedProperties.Count > 0)
                 {
-//                    await client.UpdateReportedPropertiesAsync(reportedProperties).ConfigureAwait(false);
                     await client.UpdateReportedPropertiesAsync(reportedProperties);
 
-                    Console.WriteLine("Changes to desired properties will be efficive on restarting the module.");
+                    Console.WriteLine("Warning: Changes to desired properties will be efficive on restarting the module.");
                 }
             }
             catch (AggregateException ex)
@@ -189,6 +183,9 @@ namespace UdpClientModule
             }
         }
 
+        ///
+        /// Decouple user logic from IoT Edge logic (like desired properties or direct methods)
+        ///
         private static void ThreadBody()
         {
             // https://docs.microsoft.com/en-us/dotnet/api/system.net.sockets.udpclient.beginreceive?view=net-5.0
@@ -210,10 +207,10 @@ namespace UdpClientModule
             {
                 while (true)
                 {
+                    // Here we look for an UDP message, over and over again.
                     // we have to repeat this non blocking call
-                    udpClient.BeginReceive(new AsyncCallback(ReceiveCallback), udpState);
-                    //Console.WriteLine("non blocking call");
-                    Thread.Sleep(2000);
+                    udpClient.BeginReceive(new AsyncCallback(ReceiveCallback), udpState); // We use the async pattern.
+                    Thread.Sleep(2000);  // TODO Interval ; must be shorter than on server interval!
                 }
             }
             catch (System.Exception ex)
@@ -243,10 +240,6 @@ namespace UdpClientModule
 
             Console.WriteLine($"Received message: {receiveString} coming from server '{e.Address}:{e.Port}' ");
 
-            //// Activate the following two lines to simulate heavy logic running side-by-side async
-            //   Thread.Sleep(10000);
-            //   Console.WriteLine($"Closed {receiveString}");
-
             var udpMessage = new UdpMessage
             {
                 timeStamp = DateTime.UtcNow,
@@ -254,6 +247,8 @@ namespace UdpClientModule
                 port = e.Port, // server sending the message
                 message = receiveString,
             };
+
+            // Pro tip: use a queue to disconnect receiving incoming messages from handling the messages. UDP has no acknowledge, you do not want to miss any message!
 
             var jsonMessage = JsonConvert.SerializeObject(udpMessage);
 
