@@ -11,7 +11,7 @@ namespace UdpTestServer
     {
         private static void Main(string[] args)
         {
-            Console.WriteLine("Hello World UDP Server, listening on 11000!");
+            Console.WriteLine("Hello, I'm a UDP Server and I'm listening on port 11000!");
 
             UdpClient udpClient = new UdpClient(11000);
             try
@@ -20,23 +20,24 @@ namespace UdpTestServer
 
                 while (true)
                 {
-                    var text = $"Hello {i} From UDP Server {DateTime.Now.Second}";
+                    var text = $"Hello {i} From UDP Server at {DateTime.UtcNow}";
 
                     var lengthOfMessage = text.Length;
 
                     // Sends a message to the host to which you have connected.
                     Byte[] sendBytes = Encoding.ASCII.GetBytes(text);
 
+                    // Sending a message to a specific client
                     udpClient.Send(sendBytes,
                                     sendBytes.Length,
-                                    "127.0.0.1", //"192.168.1.91"
-                                    11001);   // sending a message to a specific client (flexible)
+                                    "127.0.0.1", // client address
+                                    11001);      // client port
 
                     i++;
 
                     Console.WriteLine($"Sent: {text}");
 
-                    Thread.Sleep(10); // was tested with 10ms -> 50+ messages per second
+                    Thread.Sleep(10); // test with 10ms -> 50+ messages per second
                 }
             }
             catch (Exception ex)

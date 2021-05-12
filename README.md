@@ -101,3 +101,8 @@ The following container create options must be configured to expose the client l
 ## Public IP address
 
 The client is listening on the public IP of the host, together with the configured port.
+
+## Links
+
+https://docs.microsoft.com/en-us/dotnet/api/system.net.sockets.udpclient.beginreceive?view=net-5.0
+
