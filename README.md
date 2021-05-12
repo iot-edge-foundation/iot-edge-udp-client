@@ -62,7 +62,7 @@ The module supports the following properties:
 ```
 {
     "clientListeningPort" : 11001,
-    "minimalLogLevel" : "3"
+    "minimalLogLevel" : 3
 }
 ```
 ### ClientListeningPort 
